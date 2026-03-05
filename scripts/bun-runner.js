@@ -3,13 +3,13 @@
 /**
  * Bun runtime locator and executor.
  * Finds the Bun executable and runs the target script with it.
- * Buffers stdin for Bun compatibility on Linux.
+ * Written in CommonJS for maximum Node.js compatibility.
  */
 
-import { execFileSync, execSync } from 'child_process';
-import { existsSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
+const { execFileSync, execSync } = require('child_process');
+const { existsSync } = require('fs');
+const { join } = require('path');
+const { homedir } = require('os');
 
 const KNOWN_BUN_PATHS = [
   join(homedir(), '.bun', 'bin', 'bun'),
@@ -19,18 +19,15 @@ const KNOWN_BUN_PATHS = [
 ];
 
 function findBun() {
-  // Check PATH first
   try {
     const bunPath = execSync('which bun', { encoding: 'utf-8', timeout: 5000 }).trim();
     if (bunPath && existsSync(bunPath)) return bunPath;
-  } catch { /* not in PATH */ }
+  } catch (e) { /* not in PATH */ }
 
-  // Check known locations
   for (const p of KNOWN_BUN_PATHS) {
     if (existsSync(p)) return p;
   }
 
-  // Check BUN_INSTALL env var
   const bunInstall = process.env.BUN_INSTALL;
   if (bunInstall) {
     const binPath = join(bunInstall, 'bin', 'bun');
@@ -42,30 +39,25 @@ function findBun() {
 
 const bunPath = findBun();
 if (!bunPath) {
-  console.error('[code-recall] Bun not found. Install from https://bun.sh');
-  // Output standard hook response so Claude Code continues
-  console.log(JSON.stringify({ continue: true, suppressOutput: true }));
+  process.stderr.write('[code-recall] Bun not found. Install from https://bun.sh\n');
+  process.stdout.write(JSON.stringify({ continue: true, suppressOutput: true }) + '\n');
   process.exit(0);
 }
 
-// Forward to Bun with remaining args
 const args = process.argv.slice(2);
 
 try {
-  // Buffer stdin for Bun compatibility (Linux stdin handling differs)
-  const chunks = [];
+  // Buffer stdin if available
+  let stdinData = undefined;
   if (!process.stdin.isTTY) {
     try {
-      process.stdin.setEncoding('utf-8');
-      // Sync read with short timeout
-      const data = execSync('cat', {
+      stdinData = execSync('cat', {
         input: '',
         encoding: 'utf-8',
         timeout: 100,
         stdio: ['inherit', 'pipe', 'pipe'],
       });
-      if (data) chunks.push(data);
-    } catch { /* no stdin data or timeout — that's fine */ }
+    } catch (e) { /* no stdin data or timeout */ }
   }
 
   const result = execFileSync(bunPath, ['run', ...args], {
@@ -73,14 +65,13 @@ try {
     encoding: 'utf-8',
     stdio: ['pipe', 'pipe', 'pipe'],
     env: process.env,
-    input: chunks.join('') || undefined,
-    timeout: 120000, // 2 minute timeout
+    input: stdinData || undefined,
+    timeout: 120000,
   });
 
   if (result) process.stdout.write(result);
 } catch (err) {
-  // Forward stderr but don't block Claude Code
   if (err.stderr) process.stderr.write(err.stderr);
   if (err.stdout) process.stdout.write(err.stdout);
-  process.exit(0); // Always exit 0
+  process.exit(0);
 }

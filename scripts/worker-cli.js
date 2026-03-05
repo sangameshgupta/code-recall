@@ -2,32 +2,29 @@
 
 /**
  * Worker daemon management CLI.
- * Handles start/stop/status commands for the worker service.
+ * Written in CommonJS for maximum Node.js compatibility.
  */
 
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
+const { existsSync, readFileSync } = require('fs');
+const { join } = require('path');
+const { homedir } = require('os');
 
 const DATA_DIR = join(homedir(), '.code-recall');
 const PID_FILE = join(DATA_DIR, 'worker.pid');
-const DEFAULT_PORT = 37888;
 
 function isRunning(pid) {
   try {
     process.kill(pid, 0);
     return true;
-  } catch {
+  } catch (e) {
     return false;
   }
 }
 
 function getStatus() {
   if (!existsSync(PID_FILE)) return { running: false };
-
   const pid = parseInt(readFileSync(PID_FILE, 'utf-8').trim(), 10);
   if (isNaN(pid)) return { running: false };
-
   return { running: isRunning(pid), pid };
 }
 
@@ -43,7 +40,7 @@ switch (command) {
     const status = getStatus();
     if (status.running && status.pid) {
       process.kill(status.pid, 'SIGTERM');
-      console.log(`Stopped worker (pid: ${status.pid})`);
+      console.log('Stopped worker (pid: ' + status.pid + ')');
     } else {
       console.log('Worker not running');
     }
