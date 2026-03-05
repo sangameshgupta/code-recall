@@ -223,7 +223,7 @@ function adaptClaudeCodeEvent(raw) {
     hook_event: data.hook_event,
     tool_name: data.tool_name,
     tool_input: data.tool_input,
-    tool_output: typeof data.tool_output === "string" ? data.tool_output : void 0,
+    tool_output: typeof data.tool_output === "string" ? data.tool_output : data.tool_output != null ? JSON.stringify(data.tool_output) : void 0,
     session_id: data.session_id,
     project_dir: data.project_dir,
     stop_reason: data.stop_reason,

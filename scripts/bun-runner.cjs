@@ -108,9 +108,10 @@ if (!bunPath) {
 }
 
 collectStdin().then(function(stdinData) {
-  // Spawn bun directly (not "bun run") with the script and args
+  // Spawn bun with cwd set to plugin root so it can find node_modules
   const child = spawn(bunPath, args, {
     stdio: [stdinData ? 'pipe' : 'ignore', 'inherit', 'inherit'],
+    cwd: RESOLVED_PLUGIN_ROOT,
     env: process.env,
   });
 
