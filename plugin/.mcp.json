@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "code-recall": {
+      "command": "node",
+      "args": ["scripts/bun-runner.js", "scripts/mcp-server.cjs"],
+      "env": {}
+    }
+  }
+}
