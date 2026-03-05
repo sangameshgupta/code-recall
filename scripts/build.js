@@ -17,11 +17,9 @@ const COMMON_OPTIONS = {
   format: 'cjs',
   sourcemap: false,
   minify: false,
+  // Only externalize bun built-ins — everything else gets bundled
+  // so the CJS files work standalone without node_modules nearby
   external: [
-    '@anthropic-ai/claude-agent-sdk',
-    '@modelcontextprotocol/sdk',
-    'express',
-    'better-sqlite3',
     'bun:sqlite',
   ],
 };
