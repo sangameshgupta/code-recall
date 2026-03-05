@@ -2268,6 +2268,125 @@ var WorkerService = class {
     this.isReady = true;
   }
   registerRoutes(app) {
+    app.get("/", (_req, res) => {
+      const status = this.isReady ? "ready" : "starting";
+      const obsCount = this.isReady ? this.observations.countAll() : 0;
+      const agentStatus = this.isReady ? this.sessionManager.getStatus() : { activeSessions: 0, agentPool: { active: 0, waiting: 0 }, sessions: [] };
+      res.setHeader("Content-Type", "text/html");
+      res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>code-recall</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace; background: #0d1117; color: #c9d1d9; padding: 2rem; }
+    h1 { color: #58a6ff; margin-bottom: 0.5rem; font-size: 1.8rem; }
+    .subtitle { color: #8b949e; margin-bottom: 2rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.2rem; }
+    .card .label { color: #8b949e; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .card .value { color: #f0f6fc; font-size: 2rem; font-weight: bold; margin-top: 0.3rem; }
+    .card .value.green { color: #3fb950; }
+    .card .value.blue { color: #58a6ff; }
+    .card .value.yellow { color: #d29922; }
+    .section { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .section h2 { color: #58a6ff; font-size: 1.1rem; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 0.5rem 1rem; border-bottom: 1px solid #21262d; }
+    th { color: #8b949e; font-size: 0.8rem; text-transform: uppercase; }
+    td { color: #c9d1d9; font-size: 0.9rem; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .badge.ready { background: #238636; color: #fff; }
+    .badge.starting { background: #d29922; color: #fff; }
+    #observations { max-height: 400px; overflow-y: auto; }
+    .obs-item { padding: 0.8rem 0; border-bottom: 1px solid #21262d; }
+    .obs-type { color: #58a6ff; font-weight: 600; font-size: 0.8rem; }
+    .obs-title { color: #f0f6fc; margin-top: 0.2rem; }
+    .obs-narrative { color: #8b949e; font-size: 0.85rem; margin-top: 0.2rem; }
+    .empty { color: #484f58; font-style: italic; padding: 2rem; text-align: center; }
+    footer { color: #484f58; font-size: 0.8rem; margin-top: 2rem; text-align: center; }
+    a { color: #58a6ff; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>code-recall</h1>
+  <p class="subtitle">Persistent memory system for Claude Code</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="label">Status</div>
+      <div class="value green"><span class="badge ${status}">${status}</span></div>
+    </div>
+    <div class="card">
+      <div class="label">Observations</div>
+      <div class="value blue">${obsCount}</div>
+    </div>
+    <div class="card">
+      <div class="label">Active Agents</div>
+      <div class="value yellow">${agentStatus.agentPool.active}</div>
+    </div>
+    <div class="card">
+      <div class="label">SSE Clients</div>
+      <div class="value">${this.sseBroadcaster.clientCount}</div>
+    </div>
+    <div class="card">
+      <div class="label">PID</div>
+      <div class="value" style="font-size:1.2rem">${process.pid}</div>
+    </div>
+    <div class="card">
+      <div class="label">Uptime</div>
+      <div class="value" style="font-size:1.2rem">${Math.floor(process.uptime())}s</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Recent Observations</h2>
+    <div id="observations"></div>
+  </div>
+
+  <div class="section">
+    <h2>API Endpoints</h2>
+    <table>
+      <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+      <tr><td>GET</td><td><a href="/api/health">/api/health</a></td><td>Health check</td></tr>
+      <tr><td>GET</td><td><a href="/api/search?q=test">/api/search</a></td><td>Search observations &amp; summaries</td></tr>
+      <tr><td>GET</td><td><a href="/api/timeline">/api/timeline</a></td><td>Recent timeline</td></tr>
+      <tr><td>GET</td><td><a href="/api/observations/recent">/api/observations/recent</a></td><td>Recent observations</td></tr>
+      <tr><td>GET</td><td><a href="/api/memory/stats">/api/memory/stats</a></td><td>Memory statistics</td></tr>
+      <tr><td>GET</td><td><a href="/api/agents/status">/api/agents/status</a></td><td>Agent pool status</td></tr>
+      <tr><td>GET</td><td><a href="/api/settings">/api/settings</a></td><td>Current settings</td></tr>
+      <tr><td>GET</td><td>/stream</td><td>SSE event stream</td></tr>
+    </table>
+  </div>
+
+  <footer>code-recall v1.0.0 &middot; <a href="https://github.com/sangameshgupta/code-recall">GitHub</a></footer>
+
+  <script>
+    fetch('/api/observations/recent?limit=20')
+      .then(r => r.json())
+      .then(data => {
+        const el = document.getElementById('observations');
+        if (!data.observations || data.observations.length === 0) {
+          el.innerHTML = '<div class="empty">No observations yet. Start a Claude Code session to begin recording.</div>';
+          return;
+        }
+        el.innerHTML = data.observations.map(o => \`
+          <div class="obs-item">
+            <span class="obs-type">\${o.type || 'change'}</span>
+            <div class="obs-title">\${o.title || 'Untitled'}</div>
+            \${o.narrative ? \`<div class="obs-narrative">\${o.narrative}</div>\` : ''}
+          </div>
+        \`).join('');
+      })
+      .catch(() => {
+        document.getElementById('observations').innerHTML = '<div class="empty">Failed to load observations.</div>';
+      });
+  </script>
+</body>
+</html>`);
+    });
     app.get("/api/health", (_req, res) => {
       res.json({
         status: this.isReady ? "ready" : "starting",
