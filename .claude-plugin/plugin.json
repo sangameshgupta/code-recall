@@ -1,0 +1,20 @@
+{
+  "name": "code-recall",
+  "version": "1.0.0",
+  "description": "Persistent memory system for Claude Code — observes sessions, stores structured observations, injects context into new sessions",
+  "author": {
+    "name": "Gella Sangamesh Gupta",
+    "url": "https://github.com/sangameshgupta"
+  },
+  "repository": "https://github.com/sangameshgupta/code-recall",
+  "license": "MIT",
+  "keywords": [
+    "memory",
+    "context",
+    "persistence",
+    "hooks",
+    "mcp",
+    "observations",
+    "claude-code"
+  ]
+}

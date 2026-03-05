@@ -1,0 +1,29 @@
+{
+  "name": "code-recall-marketplace",
+  "owner": {
+    "name": "Gella Sangamesh Gupta",
+    "url": "https://github.com/sangameshgupta"
+  },
+  "metadata": {
+    "description": "Persistent memory plugin for Claude Code",
+    "version": "1.0.0",
+    "homepage": "https://github.com/sangameshgupta/code-recall"
+  },
+  "plugins": [
+    {
+      "name": "code-recall",
+      "source": "./",
+      "description": "Persistent memory system for Claude Code — observes sessions, stores structured observations, injects context into new sessions",
+      "version": "1.0.0",
+      "author": {
+        "name": "Gella Sangamesh Gupta",
+        "url": "https://github.com/sangameshgupta"
+      },
+      "homepage": "https://github.com/sangameshgupta/code-recall",
+      "repository": "https://github.com/sangameshgupta/code-recall",
+      "license": "MIT",
+      "tags": ["memory", "context", "persistence", "observations"],
+      "keywords": ["memory", "claude-code", "context", "persistence", "hooks", "mcp", "observations"]
+    }
+  ]
+}

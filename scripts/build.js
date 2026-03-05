@@ -4,12 +4,11 @@
  * Build script — produces CJS bundles for plugin distribution.
  *
  * Outputs:
- * - plugin/scripts/worker-service.cjs  — Worker daemon
- * - plugin/scripts/mcp-server.cjs      — MCP search server
+ * - scripts/worker-service.cjs  — Worker daemon
+ * - scripts/mcp-server.cjs      — MCP search server
  */
 
 import { build } from 'esbuild';
-import { mkdirSync } from 'fs';
 
 const COMMON_OPTIONS = {
   bundle: true,
@@ -18,7 +17,6 @@ const COMMON_OPTIONS = {
   format: 'cjs',
   sourcemap: false,
   minify: false,
-  // External packages that should not be bundled
   external: [
     '@anthropic-ai/claude-agent-sdk',
     '@modelcontextprotocol/sdk',
@@ -29,14 +27,11 @@ const COMMON_OPTIONS = {
 };
 
 async function main() {
-  // Ensure output directories exist
-  mkdirSync('plugin/scripts', { recursive: true });
-
   console.log('[build] Building worker-service.cjs...');
   await build({
     ...COMMON_OPTIONS,
     entryPoints: ['src/services/worker-service.ts'],
-    outfile: 'plugin/scripts/worker-service.cjs',
+    outfile: 'scripts/worker-service.cjs',
     define: {
       '__DEFAULT_PACKAGE_VERSION__': '"1.0.0"',
     },
@@ -46,7 +41,7 @@ async function main() {
   await build({
     ...COMMON_OPTIONS,
     entryPoints: ['src/servers/mcp-server.ts'],
-    outfile: 'plugin/scripts/mcp-server.cjs',
+    outfile: 'scripts/mcp-server.cjs',
     define: {
       '__DEFAULT_PACKAGE_VERSION__': '"1.0.0"',
     },

@@ -34,7 +34,19 @@ Persistent memory system for Claude Code. Automatically observes your coding ses
 - [Bun](https://bun.sh/) >= 1.0 or Node.js >= 18
 - Claude Code CLI installed and authenticated
 
-### Install as Claude Code Plugin
+### Claude Code (Native)
+
+```bash
+# Add as a Claude Code plugin
+/plugin marketplace add https://github.com/sangameshgupta/code-recall
+
+# Install
+/plugin install code-recall
+```
+
+### Manual Setup
+
+If you prefer manual setup or want to develop locally:
 
 ```bash
 # Clone the repo
@@ -44,34 +56,18 @@ cd code-recall
 # Install dependencies
 bun install
 
-# Build the plugin bundles
+# Build the CJS bundles
 bun run build
-
-# Install the plugin into Claude Code
-claude plugin add ./plugin
 ```
 
-### Manual Setup
-
-If you prefer manual setup:
-
-```bash
-# 1. Install dependencies
-bun install
-
-# 2. Build
-bun run build
-
-# 3. Copy plugin/ directory to your Claude Code plugins location
-# 4. Or add the MCP server manually to your .mcp.json:
-```
+Then add the MCP server to your Claude Code settings:
 
 ```json
 {
   "mcpServers": {
     "code-recall": {
       "command": "node",
-      "args": ["/path/to/code-recall/plugin/scripts/bun-runner.js", "/path/to/code-recall/plugin/scripts/mcp-server.cjs"],
+      "args": ["/path/to/code-recall/scripts/bun-runner.js", "/path/to/code-recall/scripts/mcp-server.cjs"],
       "env": {}
     }
   }
